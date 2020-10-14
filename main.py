@@ -33,9 +33,12 @@ def main(argv):
                         .execute()
                 )
 
+                # Switch needs to happen at 10:15 Europe/Dublin time. So here, we need to set the time
+                # comparison to 08:15 as the docker container is on UTC.
+                # ToDo: Check after daylight savings come in for bugs.
                 now_time = datetime.datetime.now().time()
-                morning_run = datetime.time(23, 15)
-                evening_run = datetime.time(10, 15)
+                morning_run = datetime.time(22, 15)
+                evening_run = datetime.time(9, 15)
                 if now_time >= morning_run or now_time <= evening_run:
                     country_datafeed["fetchSchedule"]["hour"] = 10
                 else:

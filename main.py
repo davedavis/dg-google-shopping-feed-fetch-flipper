@@ -9,6 +9,7 @@ from shopping.content import common
 # Main method, gets the list of feed IDs and makes the change depending on the current time.
 def main(argv):
     # Authenticate and construct service.
+    print("It is now: ", datetime.datetime.now().time())
     service, config, _ = common.init(argv, __doc__)
     merchant_id = config["merchantId"]
 
@@ -33,18 +34,17 @@ def main(argv):
                         .execute()
                 )
 
-                # Switch needs to happen at 10:15 Europe/Dublin time. So here, we need to set the time
-                # comparison to 08:15 as the docker container is on UTC.
-                # ToDo: Check after daylight savings come in for bugs.
+                # Switch needs to happen every 2 hours. Hour integer is what's required by the fetchSchedule dict.
+                # So this will switch the fetchSchedule to 2 hours after the container is run. There will be
+                # accumulation of lag but that doesn't matter much.
                 now_time = datetime.datetime.now().time()
-                morning_run = datetime.time(22, 15)
-                evening_run = datetime.time(9, 15)
-                if now_time >= morning_run or now_time <= evening_run:
-                    country_datafeed["fetchSchedule"]["hour"] = 10
-                else:
-                    country_datafeed["fetchSchedule"]["hour"] = 23
+                two_hours_from_now = datetime.datetime.now() + datetime.timedelta(hours=2)
+                print("Now is: ", now_time.hour)
+                print("Two hours from now is: ", two_hours_from_now.hour)
 
+                country_datafeed["fetchSchedule"]["hour"] = two_hours_from_now.hour
                 country_datafeed["fetchSchedule"]["timeZone"] = "Europe/Dublin"
+
                 request = service.datafeeds().update(
                     merchantId=merchant_id,
                     datafeedId=datafeed["id"],
